@@ -1,8 +1,21 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
-from typing import Optional, List, Set, NamedTuple
-from collections import namedtuple
+from typing import Optional, List, Set
+
+
+class OutOfStock(Exception):
+    pass
+
+
+def allocate(line: OrderLine, batches: List[Batch]) -> str:
+    try:
+        batch = next(b for b in sorted(batches) if b.can_allocate(line))
+        batch.allocate(line)
+        return batch.reference
+    except StopIteration:
+        raise OutOfStock(f"Out of stock for sku {line.sku}")
+
 
 @dataclass(unsafe_hash=True)
 class OrderLine:
@@ -30,7 +43,7 @@ class Batch:
     def __hash__(self):
         return hash(self.reference)
 
-    def __gt__(self, other):   # zaman olarak sonra gelen buyyuk kabul edilmis
+    def __gt__(self, other):
         if self.eta is None:
             return False
         if other.eta is None:
@@ -41,8 +54,9 @@ class Batch:
         if self.can_allocate(line):
             self._allocations.add(line)
 
-    def deallocate_one(self) -> OrderLine:
-        return self._allocations.pop()
+    def deallocate(self, line: OrderLine):
+        if line in self._allocations:
+            self._allocations.remove(line)
 
     @property
     def allocated_quantity(self) -> int:
@@ -54,36 +68,3 @@ class Batch:
 
     def can_allocate(self, line: OrderLine) -> bool:
         return self.sku == line.sku and self.available_quantity >= line.qty
-
-
-@dataclass(frozen=True)
-class Name:
-    first_name: str
-    last_name: str
-    
-class Money(NamedTuple):
-    currency: str
-    value: int
-    
-    def __add__(self, other) -> Money:
-        if other.currency != self.currency:
-            raise ValueError(f"Cannot add {self.currency} to {other.currency}")
-        return Money(self.currency, self.value + other.value)
-    
-    def __sub__(self, other) -> Money:
-        if other.currency != self.currency:
-            raise ValueError(f"Cannot add {self.currency} to {other.currency}")
-        return Money(self.currency, self.value - other.value)
-    
-    def __mul__(self, amount: float) -> Money:
-        return Money(self.currency, self.value * amount)
-    
-Line = namedtuple('Line', ['sku', 'qty'])
-
-class Person:
-
-    def __init__(self, name: Name):
-        self.name = name
-    
-class OutOfStock(Exception):
-    pass
