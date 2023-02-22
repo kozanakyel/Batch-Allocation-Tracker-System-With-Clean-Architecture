@@ -14,13 +14,13 @@ API_HOST = os.getenv('API_HOST')
 
 def get_postgres_uri():
     host = os.getenv('PSQL_HOST')
-    port = 54321 if host == "127.0.0.1" else 5432
+    port = os.getenv('PSQL_PORT')
     password = os.getenv("PSQL_PWD")
     user, db_name = "PSQL_USER", "PSQL_DB_NAME"
-    return f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+    return f"postgresql://postgres:postgres@localhost:5432/flask_test"
 
 
 def get_api_url():
-    host = os.getenv("API_HOST")
-    port = os.getenv("API_PORT")
-    return f"http://{host}:{port}"
+    host = os.environ.get("API_HOST", "localhost")
+    port = 5000
+    return f"http://127.0.0.1:5000"

@@ -7,6 +7,7 @@ import model
 import orm
 import repository
 import services
+import datetime
 
 
 orm.start_mappers()
@@ -28,3 +29,17 @@ def allocate_endpoint():
         return {"message": str(e)}, 400
 
     return {"batchref": batchref}, 201
+
+@app.route("/add_batch", methods=['POST'])
+def add_batch():
+    eta = request.json['eta']
+    if eta is not None:
+        eta = datetime.fromisoformat(eta).date()
+    services.add_batch(
+        request.json['ref'], request.json['sku'], request.json['qty'], eta,
+        unit_of_work.SqlAlchemyUnitOfWork(),
+    )
+    return 'OK', 201
+
+if __name__ == "__main__":
+    app.run()
