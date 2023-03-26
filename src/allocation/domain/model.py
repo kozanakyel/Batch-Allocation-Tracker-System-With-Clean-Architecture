@@ -4,6 +4,15 @@ from datetime import date
 from typing import Optional, List, Set
 
 
+class Tracker:
+    def __init__(self, symbol: str, datetime_t: str, position: int):
+        self.symbol = symbol
+        self.datetime_t = datetime_t
+        self.position = position
+        
+    def __repr__(self):
+        return f"<Tracker {self.symbol}, datetime: {self.datetime_t}, position: {self.position}>"
+
 class OutOfStock(Exception):
     pass
 
