@@ -1,5 +1,6 @@
-from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKey, DateTime
 from sqlalchemy.orm import mapper, relationship
+from sqlalchemy.sql import func
 
 from allocation.domain import model
 
@@ -41,13 +42,38 @@ allocations = Table(
 )
 
 
+assets = Table(
+    "assets",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("symbol", String(25)),
+    Column("source", String(100)),
+    Column("range_list", String(300))
+    
+)
+
+aimodels = Table(
+    "aimodels",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("symbol", String(25)),
+    Column("source", String(100)),
+    Column("feature_counts", Integer),
+    Column("model_filename", String(500)),
+    Column("ai_type", String(200)),
+    Column("hashtag", String(100), nullable=True),
+    Column("created_at", DateTime(timezone=True), server_default=func.now())
+)
+
+
 trackers = Table(
     "trackers",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("symbol", String(25)),
     Column("datetime_t", String(200)),
-    Column("position", Integer, nullable=False)
+    Column("position", Integer, nullable=False),
+    Column("created_at", DateTime(timezone=True), server_default=func.now())
 )
 
 
