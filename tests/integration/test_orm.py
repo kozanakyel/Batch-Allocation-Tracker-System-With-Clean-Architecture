@@ -87,3 +87,13 @@ def test_retrieving_allocations(session):
     batch = session.query(model.Batch).one()
 
     assert batch._allocations == {model.OrderLine("order1", "sku1", 12)}
+    
+    
+def test_saving_trackers(session):
+    tracker = model.Tracker("BTCUSDT", "2023-03-12 16:00:00+00:00", 1)
+    session.add(tracker)
+    session.commit()
+    rows = session.execute(
+        'SELECT symbol, datetime_t, position FROM "trackers"'
+    )
+    assert list(rows) == [("BTCUSDT", "2023-03-12 16:00:00+00:00", 1)]

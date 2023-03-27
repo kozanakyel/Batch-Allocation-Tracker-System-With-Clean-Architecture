@@ -41,6 +41,16 @@ allocations = Table(
 )
 
 
+trackers = Table(
+    "trackers",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("symbol", String(25)),
+    Column("datetime_t", String(200)),
+    Column("position", Integer, nullable=False)
+)
+
+
 def start_mappers():
     lines_mapper = mapper(model.OrderLine, order_lines)
     batches_mapper = mapper(
@@ -56,4 +66,7 @@ def start_mappers():
     )
     mapper(
         model.Product, products, properties={"batches": relationship(batches_mapper)}
+    )
+    mapper(
+        model.Tracker, trackers
     )

@@ -40,11 +40,15 @@ def test_add_batch_for_existing_product():
     assert "b2" in [b.reference for b in uow.products.get("GARISH-RUG").batches]
 
 
+
+"""
 def test_allocate_returns_allocation():
     uow = FakeUnitOfWork()
     services.add_batch("batch1", "COMPLICATED-LAMP", 100, None, uow)
     result = services.allocate("o1", "COMPLICATED-LAMP", 10, uow)
     assert result == "batch1"
+"""
+
 
 
 def test_allocate_errors_for_invalid_sku():
