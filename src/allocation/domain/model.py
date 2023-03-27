@@ -2,18 +2,56 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Optional, List, Set
+from allocation.domain.tracker import Tracker
 
 
-class Tracker:
-    def __init__(self, symbol: str, datetime_t: str, position: int, created_at=datetime.now()):
+def allocate_tracker(tracker: Tracker, assets: List[Asset]) -> str:
+    try:
+        asset = next(a for a in sorted(assets) if a.can_allocate(tracker))
+        asset.allocate_tracker(tracker)
+        return asset.symbol, tracker.position
+    except StopIteration:
+        raise OutOfStock(f"Symbol not included {tracker.symbol}")
+
+class Asset:
+    def __init__(self, symbol: str, source: str):
         self.symbol = symbol
-        self.datetime_t = datetime_t
-        self.position = position
-        self.created_at = created_at
+        self.source = source
+        self._allocations_tracker = set()
         
+    def allocate_tracker(self, tracker: Tracker):
+        if self.can_allocate(tracker):
+            self._allocations_tracker.add(tracker)
+            
+    def deallocate(self, tracker: Tracker):
+        if tracker in self._allocations_tracker:
+            self._allocations_tracker.remove(tracker)
+            
+    def can_allocate(self, tracker: Tracker) -> bool:
+        return tracker.symbol == self.symbol
         
     def __repr__(self):
-        return f"<Tracker {self.symbol}, datetime: {self.datetime_t}, position: {self.position}, created_at: {self.created_at}>"
+        return f"<Asset {self.symbol}, source: {self.source}>"
+
+class AIModel:
+    def __init__(self, symbol: str, source: str, feature_counts: int,
+                 model_name: str, ai_type: str, hashtag: str, accuracy_score: float, created_at=datetime.now()):
+        self.symbol = symbol
+        self.source = source
+        self.feature_counts = feature_counts
+        self.model_name = model_name
+        self.ai_type = ai_type
+        self.hashtag = hashtag
+        self.created_at = created_at
+        
+    @property    
+    def get_filepath(self):
+        return f"./src/KZ_project/dl_models/model_stack/{self.hashtag}/{self.model_name}"
+               
+    def __repr__(self):
+        return f"<AIModel {self.symbol}, source: {self.source}, model_name: {self.model_name}>"
+               
+
 
 class OutOfStock(Exception):
     pass

@@ -1,14 +1,15 @@
-from allocation.domain import model
+from allocation.domain import model, tracker
 from datetime import date
+from sqlalchemy import text
 
 
 def test_orderline_mapper_can_load_lines(session):
-    session.execute(
+    session.execute(text(
         "INSERT INTO order_lines (orderid, sku, qty) VALUES "
         '("order1", "RED-CHAIR", 12),'
         '("order1", "RED-TABLE", 13),'
         '("order2", "BLUE-LIPSTICK", 14)'
-    )
+    ))
     expected = [
         model.OrderLine("order1", "RED-CHAIR", 12),
         model.OrderLine("order1", "RED-TABLE", 13),
@@ -22,19 +23,19 @@ def test_orderline_mapper_can_save_lines(session):
     session.add(new_line)
     session.commit()
 
-    rows = list(session.execute('SELECT orderid, sku, qty FROM "order_lines"'))
+    rows = list(session.execute(text('SELECT orderid, sku, qty FROM "order_lines"')))
     assert rows == [("order1", "DECORATIVE-WIDGET", 12)]
 
 
 def test_retrieving_batches(session):
-    session.execute(
+    session.execute(text(
         "INSERT INTO batches (reference, sku, _purchased_quantity, eta)"
         ' VALUES ("batch1", "sku1", 100, null)'
-    )
-    session.execute(
+    ))
+    session.execute(text(
         "INSERT INTO batches (reference, sku, _purchased_quantity, eta)"
         ' VALUES ("batch2", "sku2", 200, "2011-04-11")'
-    )
+    ))
     expected = [
         model.Batch("batch1", "sku1", 100, eta=None),
         model.Batch("batch2", "sku2", 200, eta=date(2011, 4, 11)),
@@ -47,9 +48,9 @@ def test_saving_batches(session):
     batch = model.Batch("batch1", "sku1", 100, eta=None)
     session.add(batch)
     session.commit()
-    rows = session.execute(
+    rows = session.execute(text(
         'SELECT reference, sku, _purchased_quantity, eta FROM "batches"'
-    )
+    ))
     assert list(rows) == [("batch1", "sku1", 100, None)]
 
 
@@ -59,28 +60,28 @@ def test_saving_allocations(session):
     batch.allocate(line)
     session.add(batch)
     session.commit()
-    rows = list(session.execute('SELECT orderline_id, batch_id FROM "allocations"'))
+    rows = list(session.execute(text('SELECT orderline_id, batch_id FROM "allocations"')))
     assert rows == [(batch.id, line.id)]
 
 
 def test_retrieving_allocations(session):
     session.execute(
-        'INSERT INTO order_lines (orderid, sku, qty) VALUES ("order1", "sku1", 12)'
+        text('INSERT INTO order_lines (orderid, sku, qty) VALUES ("order1", "sku1", 12)')
     )
     [[olid]] = session.execute(
-        "SELECT id FROM order_lines WHERE orderid=:orderid AND sku=:sku",
+        text("SELECT id FROM order_lines WHERE orderid=:orderid AND sku=:sku"),
         dict(orderid="order1", sku="sku1"),
     )
-    session.execute(
+    session.execute(text(
         "INSERT INTO batches (reference, sku, _purchased_quantity, eta)"
         ' VALUES ("batch1", "sku1", 100, null)'
-    )
+    ))
     [[bid]] = session.execute(
-        "SELECT id FROM batches WHERE reference=:ref AND sku=:sku",
+       text("SELECT id FROM batches WHERE reference=:ref AND sku=:sku"),
         dict(ref="batch1", sku="sku1"),
     )
     session.execute(
-        "INSERT INTO allocations (orderline_id, batch_id) VALUES (:olid, :bid)",
+        text("INSERT INTO allocations (orderline_id, batch_id) VALUES (:olid, :bid)"),
         dict(olid=olid, bid=bid),
     )
 
@@ -90,11 +91,11 @@ def test_retrieving_allocations(session):
     
     
 def test_saving_trackers(session):
-    tracker = model.Tracker("BTCUSDT", "2023-03-12 16:00:00+00:00", 1)
-    session.add(tracker)
+    tr = tracker.Tracker("BTkUSDT", "2023-03-12 16:00:00+00:00", 1)
+    session.add(tr)
     session.commit()
-    rows = session.execute(
+    rows = session.execute(text(
         'SELECT symbol, datetime_t, position FROM "trackers"'
-    )
-    print(list(rows))
-    assert list(rows) == [("BTCUSDT", "2023-03-12 16:00:00+00:00", 1)]
+    ))
+    #print(list(rows))
+    assert list(rows) == [("BTkUSDT", "2023-03-12 16:00:00+00:00", 1)]

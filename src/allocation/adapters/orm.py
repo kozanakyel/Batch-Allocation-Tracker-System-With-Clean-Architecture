@@ -1,8 +1,10 @@
-from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKey, DateTime
-from sqlalchemy.orm import mapper, relationship
+from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKey, DateTime, Float
+from sqlalchemy.orm import relationship, registry
 from sqlalchemy.sql import func
 
-from allocation.domain import model
+from allocation.domain import model, tracker
+
+mapper_registry = registry()
 
 
 metadata = MetaData()
@@ -47,8 +49,7 @@ assets = Table(
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("symbol", String(25)),
-    Column("source", String(100)),
-    Column("range_list", String(300))
+    Column("source", String(100))
     
 )
 
@@ -59,9 +60,10 @@ aimodels = Table(
     Column("symbol", String(25)),
     Column("source", String(100)),
     Column("feature_counts", Integer),
-    Column("model_filename", String(500)),
+    Column("model_name", String(500)),
     Column("ai_type", String(200)),
     Column("hashtag", String(100), nullable=True),
+    Column("accuracy_score", Float()),
     Column("created_at", DateTime(timezone=True), server_default=func.now())
 )
 
@@ -73,13 +75,21 @@ trackers = Table(
     Column("symbol", String(25)),
     Column("datetime_t", String(200)),
     Column("position", Integer, nullable=False),
-    Column("created_at", DateTime(timezone=True), server_default=func.now())
+    Column("created_at", DateTime())
+)
+
+allocations_tracker = Table(
+    "allocations_tracker",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("tracker_id", ForeignKey("trackers.id")),
+    Column("asset_id", ForeignKey("assets.id")),
 )
 
 
 def start_mappers():
-    lines_mapper = mapper(model.OrderLine, order_lines)
-    batches_mapper = mapper(
+    lines_mapper = mapper_registry.map_imperatively(model.OrderLine, order_lines)
+    batches_mapper = mapper_registry.map_imperatively(
         model.Batch,
         batches,
         properties={
@@ -90,9 +100,25 @@ def start_mappers():
             )
         },
     )
-    mapper(
+    mapper_registry.map_imperatively(
         model.Product, products, properties={"batches": relationship(batches_mapper)}
     )
-    mapper(
-        model.Tracker, trackers
+    
+    
+    lines_mapper_tracker = mapper_registry.map_imperatively(
+        tracker.Tracker, trackers
+    )
+    
+    mapper_registry.map_imperatively(
+        model.Asset, 
+        assets,
+         properties={
+            "_allocations_tracker": relationship(
+                lines_mapper_tracker, secondary=allocations_tracker, collection_class=set,
+            )
+        },
+    )
+    
+    mapper_registry.map_imperatively(
+        model.AIModel, aimodels
     )

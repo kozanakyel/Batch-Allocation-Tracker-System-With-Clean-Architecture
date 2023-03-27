@@ -2,7 +2,7 @@ import abc
 from allocation.domain import model
 
 
-class BaseRepository():
+class AbstractBaseRepository():
     @abc.abstractmethod
     def add():
         raise NotImplementedError
@@ -13,7 +13,7 @@ class BaseRepository():
     
     
 
-class AbstractRepository(BaseRepository):
+class AbstractRepository(AbstractBaseRepository):
     @abc.abstractmethod
     def add(self, product: model.Product):
         raise NotImplementedError
