@@ -96,4 +96,5 @@ def test_saving_trackers(session):
     rows = session.execute(
         'SELECT symbol, datetime_t, position FROM "trackers"'
     )
+    print(list(rows))
     assert list(rows) == [("BTCUSDT", "2023-03-12 16:00:00+00:00", 1)]
