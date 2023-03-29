@@ -86,3 +86,19 @@ def allocate_tracker():
 
     return {"assetref": assetref}, 201
 
+
+@app.route("/position", methods=["POST"])
+def get_position():
+    session = get_session()
+    repo = TrackerRepository(session)
+    try:
+        trackref = services.get_position(
+            request.json["symbol"],
+            repo,
+            session
+        )
+        
+    except (services.InvalidSymbol) as e:
+        return {"message": str(e)}, 400
+
+    return {"trackref": trackref}, 201

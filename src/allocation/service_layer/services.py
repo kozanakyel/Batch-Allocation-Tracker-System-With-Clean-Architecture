@@ -1,13 +1,19 @@
 from __future__ import annotations
 from typing import Optional
 from datetime import date
+import json
+from flask import jsonify
 
-from allocation.domain import model
+from allocation.domain.asset import Asset, allocate_tracker
+
+from allocation.domain.aimodel import AIModel
 from allocation.domain.model import OrderLine
 from allocation.service_layer import unit_of_work
+from allocation.domain import model
 
 from allocation.adapters.repository import AbstractBaseRepository
 from allocation.domain.tracker import Tracker
+from allocation.domain.asset import InvalidSymbol
 
 class InvalidSku(Exception):
     pass
@@ -44,14 +50,12 @@ def add_asset(
     symbol: str, source: str,
     repo: AbstractBaseRepository, session,
 ) -> None:
-    repo.add(model.Asset(symbol, source))
+    repo.add(Asset(symbol, source))
     session.commit()
     
 def is_valid_symbol(symbol, assets):
     return symbol in {asset.symbol for asset in assets}
 
-class InvalidSymbol(Exception):
-    pass
     
 def allocate_tracker(
     symbol: str, datetime_t: str, position: int,
@@ -62,7 +66,15 @@ def allocate_tracker(
     assets = repo.list()
     if not is_valid_symbol(tracker.symbol, assets):
         raise InvalidSymbol(f"Invalid symbol {tracker.symbol}")
-    result_tracker = model.allocate_tracker(tracker, assets)
+    result_tracker = allocate_tracker(tracker, assets)
     session.commit()
     print(f'result print allocatie tracker:L {result_tracker}')
     return result_tracker
+
+def get_position(
+    symbol: str, 
+    repo: AbstractBaseRepository, session,
+):
+    result = repo.get(symbol)
+    session.commit()
+    return result.symbol, result.position, result.datetime_t

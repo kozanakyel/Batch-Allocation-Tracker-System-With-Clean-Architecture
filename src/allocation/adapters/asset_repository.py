@@ -1,14 +1,14 @@
 import abc
-from allocation.domain import model
+from allocation.domain.asset import Asset
 from allocation.adapters.repository import AbstractBaseRepository
 
 class AbstractAssetRepository(AbstractBaseRepository):
     @abc.abstractmethod
-    def add(self, asset: model.Asset):
+    def add(self, asset: Asset):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, symbol) -> model.Asset:
+    def get(self, symbol) -> Asset:
         raise NotImplementedError
     
 class AssetRepository(AbstractAssetRepository):
@@ -19,7 +19,7 @@ class AssetRepository(AbstractAssetRepository):
         self.session.add(asset)
 
     def get(self, symbol):
-        return self.session.query(model.Asset).filter_by(symbol=symbol).first()
+        return self.session.query(Asset).filter_by(symbol=symbol).first()
     
     def list(self):
-        return self.session.query(model.Asset).all()
+        return self.session.query(Asset).all()

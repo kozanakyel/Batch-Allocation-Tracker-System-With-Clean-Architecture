@@ -1,4 +1,6 @@
-from allocation.domain import model, tracker
+from allocation.domain import model
+from allocation.domain.tracker import Tracker
+from allocation.domain.asset import Asset
 from datetime import date
 from sqlalchemy import text
 
@@ -91,7 +93,7 @@ def test_retrieving_allocations(session):
     
     
 def test_saving_trackers(session):
-    tr = tracker.Tracker("BTkUSDT", "2023-03-12 16:00:00+00:00", 1)
+    tr = Tracker("BTkUSDT", "2023-03-12 16:00:00+00:00", 1)
     session.add(tr)
     session.commit()
     rows = session.execute(text(
@@ -99,3 +101,42 @@ def test_saving_trackers(session):
     ))
     #print(list(rows))
     assert list(rows) == [("BTkUSDT", "2023-03-12 16:00:00+00:00", 1)]
+    
+    
+def test_tracker_mapper_can_load(session):
+    session.execute(text(
+        "INSERT INTO trackers (symbol, datetime_t, position) VALUES "
+        '("btcusdt", "RED-CHAIR", 12),'
+        '("zecusd", "RED-TABLE", 13),'
+        '("order2", "BLUE-LIPSTICK", 14)'
+    ))
+    expected = [
+        Tracker("btcusdt", "RED-CHAIR", 12),
+        Tracker("zecusd", "RED-TABLE", 13),
+        Tracker("order2", "BLUE-LIPSTICK", 14),
+    ]
+    assert session.query(Tracker).all() == expected
+
+def test_tracker_mapper_can_save(session):
+    new_line = Tracker("order1", "DECORATIVE-WIDGET", 12)
+    session.add(new_line)
+    session.commit()
+
+    rows = list(session.execute(text('SELECT symbol, datetime_t, position FROM "trackers"')))
+    assert rows == [("order1", "DECORATIVE-WIDGET", 12)]  
+    
+def test_retrieving_assets(session):
+    session.execute(text(
+        "INSERT INTO assets (symbol, source)"
+        ' VALUES ("batch1", "sku1")'
+    ))
+    session.execute(text(
+        "INSERT INTO assets (symbol, source)"
+        ' VALUES ("batch3", "sku2")'
+    ))
+    expected = [
+        Asset("batch1", "sku1"),
+        Asset("batch3", "sku2"),
+    ]
+
+    assert session.query(Asset).all() == expected
