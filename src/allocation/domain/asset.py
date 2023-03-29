@@ -18,6 +18,16 @@ class Asset:
             
     def can_allocate(self, tracker: Tracker) -> bool:
         return tracker.symbol == self.symbol
+    
+    def __eq__(self, other):
+        if not isinstance(other, Asset):
+            return False
+        cond1 = other.symbol == self.symbol
+        cond2 = other.source == self.source
+        return cond1 and cond2
+    
+    def __hash__(self):
+        return hash(self.symbol)
         
     def __repr__(self):
         return f"<Asset {self.symbol}, source: {self.source}>"

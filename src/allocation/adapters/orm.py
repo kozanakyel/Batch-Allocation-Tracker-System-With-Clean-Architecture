@@ -2,7 +2,10 @@ from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKe
 from sqlalchemy.orm import relationship, registry
 from sqlalchemy.sql import func
 
-from allocation.domain import model, tracker
+from allocation.domain import model
+from allocation.domain.tracker import Tracker
+from allocation.domain.asset import Asset
+from allocation.domain.aimodel import AIModel
 
 mapper_registry = registry()
 
@@ -64,7 +67,7 @@ aimodels = Table(
     Column("ai_type", String(200)),
     Column("hashtag", String(100), nullable=True),
     Column("accuracy_score", Float()),
-    Column("created_at", DateTime(timezone=True), server_default=func.now())
+    Column("created_at", DateTime())
 )
 
 
@@ -106,11 +109,11 @@ def start_mappers():
     
     
     lines_mapper_tracker = mapper_registry.map_imperatively(
-        tracker.Tracker, trackers
+        Tracker, trackers
     )
     
     mapper_registry.map_imperatively(
-        model.Asset, 
+        Asset, 
         assets,
          properties={
             "_allocations_tracker": relationship(
@@ -120,5 +123,5 @@ def start_mappers():
     )
     
     mapper_registry.map_imperatively(
-        model.AIModel, aimodels
+        AIModel, aimodels
     )

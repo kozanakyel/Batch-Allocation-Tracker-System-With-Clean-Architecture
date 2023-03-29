@@ -1,5 +1,5 @@
 import abc
-from allocation.domain.tarcker import Tracker
+from allocation.domain.tracker import Tracker
 from allocation.adapters.repository import AbstractBaseRepository
 
 class AbstractTrackerRepository(AbstractBaseRepository):

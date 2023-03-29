@@ -49,7 +49,7 @@ def insert_allocation(session, orderline_id, batch_id):
         dict(orderline_id=orderline_id, batch_id=batch_id),
     )
 
-"""
+
 def test_repository_can_retrieve_a_batch_with_allocations(session):
     orderline_id = insert_order_line(session)
     batch1_id = insert_batch(session, "batch1")
@@ -66,4 +66,4 @@ def test_repository_can_retrieve_a_batch_with_allocations(session):
     assert retrieved._allocations == {
         model.OrderLine("order1", "GENERIC-SOFA", 12),
     }
-"""
+
