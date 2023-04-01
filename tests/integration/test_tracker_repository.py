@@ -44,14 +44,14 @@ def insert_asset(session, batch_id):
     )
     return batch_id
 
-
+"""
 def insert_allocation_tracker(session, orderline_id, batch_id):
     session.execute(text(
         "INSERT INTO allocations_tracker (tracker_id, asset_id)"
         " VALUES (:orderline_id, :batch_id)"),
         dict(orderline_id=orderline_id, batch_id=batch_id),
     )
-
+"""
 
 def test_repository_can_retrieve_a_asset_with_allocations(session):
     orderline_id = insert_tracker(session)
